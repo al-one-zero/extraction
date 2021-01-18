@@ -1,0 +1,9 @@
+jupyter
+nbdime
+black
+nb-black
+numpy
+pandas
+scikit
+spacy
+thinc
