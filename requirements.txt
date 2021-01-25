@@ -1,8 +1,8 @@
 jupyter
+jedi==0.17.1
 nbdime
 black
 nb-black
 numpy
 pandas
-spacy
 thinc
