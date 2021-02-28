@@ -68,4 +68,5 @@ def preprocess_dataset(df_, fasttext_model_location='../data/lid.176.bin'):
                                     model.predict(tweet_to_lower(x), k=1)[0][0][len("__label__"):])
     df["LanguageProbability"] = df.Tweet.apply(lambda x :
                                     model.predict(tweet_to_lower(x), k=1)[1][0])
+    df["irr"] = ~df.Language.str.match("en")
     return df
