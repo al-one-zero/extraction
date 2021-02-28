@@ -6,3 +6,5 @@ nb-black
 numpy
 pandas
 thinc
+fasttext
+emot
