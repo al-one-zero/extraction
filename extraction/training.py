@@ -31,8 +31,6 @@ def load_data(path="data/df.pk"):
     data["avis"] = data.Avis.map(cat_codes.get)
     data.Tweet = lemmatize(data.Tweet)
 
-    cat_codes = dict(enumerate(data.avis.cat.categories))
-
     train, val, test = train_val_test_split(data)
 
     print(train, val, test)
