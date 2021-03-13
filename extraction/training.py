@@ -15,7 +15,7 @@ from preprocessing import preprocess_dataset as clean_data
 AUTOTUNE = tf.data.AUTOTUNE
 batch_size = 32
 seed = 42
-cat_codes = None
+cat_codes = {"neg": 0, "neu": 1, "pos": 2, "irr": 3}
 
 
 def train_val_test_split(df, train_size=0.8, val_size=0.1):
@@ -28,7 +28,7 @@ def train_val_test_split(df, train_size=0.8, val_size=0.1):
 def load_data(path="data/df.pk"):
     data = clean_data(pd.read_pickle(path), fasttext_model_location="data/lid.176.bin")
     data = data[data.Avis != "irr"]
-    data["avis"] = data.Avis.astype("category").cat.codes
+    data["avis"] = data.Avis.map(cat_codes.get)
     data.Tweet = lemmatize(data.Tweet)
 
     cat_codes = dict(enumerate(data.avis.cat.categories))
@@ -148,7 +148,7 @@ if __name__ == "__main__":
     data = clean_data(
         pd.read_pickle("data/df.pk"), fasttext_model_location="data/lid.176.bin"
     )
-    data["avis"] = data.Avis.map({"neg": 0, "neu": 1, "pos": 2, "irr": 3}.get)
+    data["avis"] = data.Avis.map(cat_codes.get)
     print(data.avis)
     data.Tweet = lemmatize(data.Tweet)
 
