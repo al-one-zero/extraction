@@ -8,3 +8,7 @@ pandas
 thinc
 fasttext
 emot
+spacy
+tensorflow
+tensorflow_hub
+tensorflow_text

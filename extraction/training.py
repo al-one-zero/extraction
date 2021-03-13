@@ -158,8 +158,8 @@ if __name__ == "__main__":
 
     test["pred"] = predict(test.Tweet)
     print(test.pred)
-    test[test.Language != "en"].pred = 3
     print(accuracy_score(test.avis, test.pred))
+    test[test.Language != "en"].pred = 3
 
     # train_ds, val_ds, test_ds = load_data()
 
