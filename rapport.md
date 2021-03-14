@@ -15,11 +15,11 @@ Extraction des données
 Le problème qui nous est proposé est un problème de traitement de la langue et d'analyse du sentiment d'un corpus de messages extraits du site de microblogging Twitter. On se propose de déterminer le sentiment que décrivent les tweets vis a vis d'une des entreprises suivantes : Google, Apple, Microsoft et Twitter.
 On nous propose de discriminer les tweets en 4 catégories : sentiment positif, négatif, neutre et les tweets qui ne sont pas en rapport avec l'entreprise concernées.
 
-Dans ce document, nous décrirons d'abord les données et l'adaptation que l'on en fait pour l'étude, les approches abordées et les résultats que l'on obtient a l'issue de l'approche choisie.
+Dans ce document, nous décrirons d'abord les données et l'adaptation que l'on en fait pour l'étude, les approches abordées et les résultats que l'on obtient à l'issue de l'approche choisie.
 
 1 - Présentation des données et traitement préalable
 ---
-Les données se présentent dans un fichier texte par ensemble comportant un tweet par ligne. A chaque tweet sont associés un indice, une étiquette de setiment parmis 'pos', 'neg', 'neu' et 'irr' respectivement pour designer les sentiments positif, négatif, neutre et sans rapport, et une étiquette désignant l'entreprise concernée par le tweet. Un extrait des données est fourni en Figure 1.
+Les données se présentent dans un fichier texte par ensemble comportant un tweet par ligne. A chaque tweet sont associés un indice, une étiquette de setiment parmis "pos", "neg", "neu" et "irr" respectivement pour designer les sentiments positif, négatif, neutre et sans rapport, et une étiquette désignant l'entreprise concernée par le tweet. Un extrait des données est fourni en Figure 1.
 
 ```
 (0000,neu,apl) 20 min line @apple store @short pump.
@@ -74,3 +74,4 @@ Nous choisissons d'utiliser un réseau de neurones profonds avec entre 4 couches
 ## 3 - Résultats
 
 ## 4 - Conclusion
+
