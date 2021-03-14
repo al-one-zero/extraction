@@ -4,6 +4,7 @@ authors:
  - Oussama Bouzaouit
  - Jean-Marc Fares
 date: 15/03/21
+git-repo: https://github.com/al-one-zero/extraction
 ---
 
 Extraction des données
@@ -34,28 +35,41 @@ Les données se présentent dans un fichier texte par ensemble comportant un twe
 ```
 _Fig. 1 :_ Extrait du corpus d'entrainement des tweets
 
-Nous importons ce fichier dans un environnement `python` à l'aide de la bibliothèque `pandas`.
+Nous importons ce fichier dans un environnement `python` à l'aide de la bibliothèque [`pandas`](http://pandas.pydata.org).
 
-### Extraction des _mentions_ et des _hashtags_
+### Extraction des _mentions_ et des _hashtags_ [[source]](https://github.com/al-one-zero/extraction/blob/2b1308c63e731643da9f3b4c6b174716c13e6873/extraction/preprocessing.py#L54)
 
 Un premier traitement que nous réalisons est celui d'extraire les hashtags et les mentions contenues dans chaque tweet. Nous remplacons les mots de ces deux types de lien propre à twitter par leur contenu textuel : "#microsoft" devient "microsoft" et "@apple" devient "apple" par exemple. Nous plaçons ensuite toutes les mentions dans une liste que l'on ajoute à la ligne du tweet concerné, de même pour les mentions.
 
-### Remplacement des émojis
+### Remplacement des émojis [[source]](https://github.com/al-one-zero/extraction/blob/2b1308c63e731643da9f3b4c6b174716c13e6873/extraction/preprocessing.py#L31)
 
-De plus, pour rendre compte de l'information contenue dans les émojis, on décide de les remplacer par leur nom unicode (le nom sous lequel ils sont décrits dans la norme les introduisant).
-Ainsi, l'émoji '🥓' ayant pour texte unicode '\:bacon:' devient le mot 'bacon', ou bien '🤙' ayant pour texte  '\:call_me_hand:' devient 'call me hand'.
+De plus, pour rendre compte de l'information contenue dans les émojis, on décide de les remplacer par leur nom unicode (le nom sous lequel ils sont décrits dans la norme les introduisant).  
+Ainsi, l'émoji "🥓" ayant pour texte unicode "\:bacon:" devient le mot "bacon", ou bien "🤙" ayant pour texte  "\:call_me_hand:" devient "call me hand".
 
-### Liens hypertexte
+### Liens hypertexte [[source]](https://github.com/al-one-zero/extraction/blob/2b1308c63e731643da9f3b4c6b174716c13e6873/extraction/preprocessing.py#L20)
 
-Les liens hypertexte (c'est-à-dire les chaînes de caractères préfixées par 'http(s)://bit.ly' - car twitter raccourcit automatiquement les liens avec le raccourcisseur _bit.ly_) sont remplacés par la chaîne '_LINK_'.
+Les liens hypertexte (c'est-à-dire les chaînes de caractères préfixées par "http(s)://bit.ly" - car twitter raccourcit automatiquement les liens avec le raccourcisseur _bit.ly_) sont remplacés par la chaîne "\_LINK_".
 
 ## 2 - Méthodologie de prédiction du sentiment
 
-### Détection de la langue du tweet
+### a) Détection de la langue du tweet [[source]](https://github.com/al-one-zero/extraction/blob/2b1308c63e731643da9f3b4c6b174716c13e6873/extraction/preprocessing.py#L87)
 
-### Plongements de texte
+On constate qu'une grande majorité des tweets de la classe "irr" sont formulés dans une langue autre que l'anglais. Forts de ce constat, on se propose d'ajouter une information sur la langue de chaque tweet.  
+Pour automatiser le processus, on utilise un modèle préentrainé de la librairie [`fasttext`](https://fasttext.cc/docs/en/language-identification.html). Ce module permet d'identifier 176 langues et est entrainé sur les corpus de texte de Wikipédia, de SETimes et du corpus de traduction collaboratif Tatoeba.  
+En pratique, on interroge le modèle pour chaque tweet, et l'on ajoute le bigramme correspondant au tweet - dans une nouvelle colonne, ainsi que la probabilité avec laquelle le tweet est formulé dans la langue citée.
 
-### Predicteurs
+### b) Plongements de texte
+
+Afin de pouvoir présenter le contenu des données à un prédicteur, nous pouvons utiliser des plongements de texte pour transformer le contenu textuel du tweet en une représentation numérique.  
+Parmis les options qui s'offrent à nous, on choisit d'uiliser des réseaux d'embedding préentrainés sur des corpus de texte plus imposants que le notre. Pour cette seconde option, on se propose d'essayer les embeddings [nnlm](https://tfhub.dev/google/nnlm-en-dim128/2) et [BERT](https://tfhub.dev/tensorflow/bert_en_uncased_L-12_H-768_A-12/3).
+
+En pratique, l'utilisation des deux types de modèles sont équivalents autant dans la mise en place de la solution que dans les résultats.
+Pour produire une représentation vectorielle de nos tweets, il nous faut télécharger le modèle préentrainé depuis internet et le charger à l'aide respectivement des modules `tensorflow_hub` et `tensorflow`.  
+La marche à suivre est donnée sur la page de chacun des modèles sur [tfhub.dev](https://tfhub.dev). Une légère subtilité est que BERT n'attend pas une chaîne de caractères en entrée, le tweet doit être tokenisé (découpage de la chaîne de catractères initiale en liste de mots). Le préprocesseur produit pour chaque tweet le triplet de tenseurs entiers suivants : un tenseur des indices des mots utilisés, un tenseur représentant le masque que l'on a sur le tenseur précédent (afin que tous les tweets aient la même longueur, on remplit les tweets les plus courts pour qu'ils aient la même longueur que le plus long), puis un tenseur des débuts des tokens dans le tweet. Le modèle `nnlm` luiu attent directement des chaînes de caractère, donc il n'y a pas de préprocessing à faire en amont.  
+
+### c) Predicteur
+
+Nous choisissons d'utiliser un réseau de neurones profonds avec entre 4 couches cachées de 50 neuronnes par couche. Nous utilisons `tensorflow.keras` pour implémenter cette méthode d'apprentissage.
 
 ## 3 - Résultats
 
