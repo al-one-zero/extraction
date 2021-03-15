@@ -71,6 +71,12 @@ def tweet_to_lower(tw):
         .replace("twitter", "Twitter")
     )
 
+def read_txt_file(path:str ="../data/train.txt") -> pd.DataFrame:
+    exp = r"\(\d*,(.*),(\w*)\) (.*)"
+    column_names = ("Avis", "Entreprise", "Tweet")
+    matrix = np.array([re.findall(exp, l) for l in open(path, "r").readlines()]).reshape(-1, 3)
+    return pd.DataFrame(matrix, columns=column_names)
+
 
 # given a dataframe that contains at least a "Tweet" column, add the following columns :
 # Tweet : the preprocessing version of the original column

@@ -137,12 +137,21 @@ def predict(tweets, model_path="data/twitter_bert"):
         model = tf.saved_model.load(model_path)
 
     if model is not None:
-        return tf.math.argmax(tf.sigmoid(model(tf.constant(tweets))), axis=1)
+        return np.argmax(model(tf.constant(tweets)).numpy(), axis=1)
 
     return
 
 
 if __name__ == "__main__":
+    # train_ds, val_ds, test_ds = load_data()
+    #
+    # classifier_model = build_classifier_model()
+    # train(classifier_model, train_ds, val_ds)
+    # evaluate(classifier_model, test_ds)
+    #
+    # saved_model_path = "data/twitter_bert"
+    # classifier_model.save(saved_model_path, include_optimizer=False)
+    #
     data = clean_data(
         pd.read_pickle("data/df.pk"), fasttext_model_location="data/lid.176.bin"
     )
@@ -152,18 +161,11 @@ if __name__ == "__main__":
 
     train, val, test = train_val_test_split(data)
 
+    print(predict(val.Tweet))
+
     from sklearn.metrics import accuracy_score
 
-    test["pred"] = predict(test.Tweet)
-    print(test.pred)
-    print(accuracy_score(test.avis, test.pred))
-    test[test.Language != "en"].pred = 3
-
-    # train_ds, val_ds, test_ds = load_data()
-
-    # classifier_model = build_classifier_model()
-    # train(classifier_model, train_ds, val_ds)
-    # evaluate(classifier_model, test_ds)
-
-    # saved_model_path = "data/twitter_bert"
-    # classifier_model.save(saved_model_path, include_optimizer=False)
+    val["pred"] = predict(val.Tweet)
+    print(val.pred)
+    val[val.Language != "en"].pred = 3
+    print(accuracy_score(val.avis, val.pred))
