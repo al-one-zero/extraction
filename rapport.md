@@ -13,7 +13,7 @@ Extraction des données
 0 - Introduction
 ---
 Le problème qui nous est proposé est un problème de traitement de la langue et d'analyse du sentiment d'un corpus de messages extraits du site de microblogging Twitter. On se propose de déterminer le sentiment que décrivent les tweets vis a vis d'une des entreprises suivantes : Google, Apple, Microsoft et Twitter.
-On nous propose de discriminer les tweets en 4 catégories : sentiment positif, négatif, neutre et les tweets qui ne sont pas en rapport avec l'entreprise concernées.
+On nous propose de discriminer les tweets en 4 catégories : sentiment positif, négatif, neutre et les tweets qui ne sont pas en rapport avec l'entreprise concernée.
 
 Dans ce document, nous décrirons d'abord les données et l'adaptation que l'on en fait pour l'étude, les approches abordées et les résultats que l'on obtient à l'issue de l'approche choisie.
 
@@ -54,18 +54,18 @@ Les liens hypertexte (c'est-à-dire les chaînes de caractères préfixées par 
 
 ### a) Détection de la langue du tweet [[source]](https://github.com/al-one-zero/extraction/blob/main/extraction/preprocessing.py#L87)
 
-On constate qu'une grande majorité des tweets de la classe "irr" sont formulés dans une langue autre que l'anglais. Forts de ce constat, on se propose d'ajouter une information sur la langue de chaque tweet.  
+On constate qu'une grande majorité des tweets de la classe "irr" (>90%) sont formulés dans une langue autre que l'anglais. Forts de ce constat, on se propose d'ajouter une information sur la langue de chaque tweet.  
 Pour automatiser le processus, on utilise un modèle préentrainé de la librairie [`fasttext`](https://fasttext.cc/docs/en/language-identification.html). Ce module permet d'identifier 176 langues et est entrainé sur les corpus de texte de Wikipédia, de SETimes et du corpus de traduction collaboratif Tatoeba.  
 En pratique, on interroge le modèle pour chaque tweet, et l'on ajoute le bigramme correspondant au tweet - dans une nouvelle colonne, ainsi que la probabilité avec laquelle le tweet est formulé dans la langue citée.
 
 ### b) Plongements de texte
 
 Afin de pouvoir présenter le contenu des données à un prédicteur, nous pouvons utiliser des plongements de texte pour transformer le contenu textuel du tweet en une représentation numérique.  
-Parmis les options qui s'offrent à nous, on choisit d'uiliser des réseaux d'embedding préentrainés sur des corpus de texte plus imposants que le notre. Pour cette seconde option, on se propose d'essayer les embeddings [nnlm](https://tfhub.dev/google/nnlm-en-dim128/2) et [BERT](https://tfhub.dev/tensorflow/bert_en_uncased_L-12_H-768_A-12/3).
+Parmis les options qui s'offrent à nous, on choisit d'utiliser des réseaux d'embedding préentrainés sur des corpus de texte plus imposants que le notre. Pour cette seconde option, on se propose d'essayer les embeddings [nnlm](https://tfhub.dev/google/nnlm-en-dim128/2) et [BERT](https://tfhub.dev/tensorflow/bert_en_uncased_L-12_H-768_A-12/3).
 
 En pratique, l'utilisation des deux types de modèles sont équivalents autant dans la mise en place de la solution que dans les résultats.
 Pour produire une représentation vectorielle de nos tweets, il nous faut télécharger le modèle préentrainé depuis internet et le charger à l'aide respectivement des modules `tensorflow_hub` et `tensorflow`.  
-La marche à suivre est donnée sur la page de chacun des modèles sur [tfhub.dev](https://tfhub.dev). Une légère subtilité est que BERT n'attend pas une chaîne de caractères en entrée, le tweet doit être tokenisé (découpage de la chaîne de catractères initiale en liste de mots). Le préprocesseur produit pour chaque tweet le triplet de tenseurs entiers suivants : un tenseur des indices des mots utilisés, un tenseur représentant le masque que l'on a sur le tenseur précédent (afin que tous les tweets aient la même longueur, on remplit les tweets les plus courts pour qu'ils aient la même longueur que le plus long), puis un tenseur des débuts des tokens dans le tweet. Le modèle `nnlm` luiu attent directement des chaînes de caractère, donc il n'y a pas de préprocessing à faire en amont.  
+La marche à suivre est donnée sur la page de chacun des modèles sur [tfhub.dev](https://tfhub.dev). Une légère subtilité est que BERT n'attend pas une chaîne de caractères en entrée, le tweet doit être tokenisé (découpage de la chaîne de catractères initiale en liste de mots). Le préprocesseur produit pour chaque tweet le triplet de tenseurs entiers suivants : un tenseur des indices des mots utilisés, un tenseur représentant le masque que l'on a sur le tenseur précédent (afin que tous les tweets aient la même longueur, on remplit les tweets les plus courts pour qu'ils aient la même longueur que le plus long), puis un tenseur des débuts des tokens dans le tweet. Le modèle `nnlm` lui attend directement des chaînes de caractère, donc il n'y a pas de préprocessing à faire en amont.  
 
 ### c) Entreprise et langue
 
@@ -81,19 +81,19 @@ Nous utilisons `tensorflow.keras` pour implémenter cette méthode d'apprentissa
 ![Schematisation du modèle](https://i.imgur.com/ADB8Dfs.png)
 _Fig. 2:_ Schématisation du modèle
 
-Inialement, il était prévu d'utiliser la librairie [`thinc`](https://thinc.ai) qui base la structure de ses modèles sur une approche fonctionnelle (expoitant le concept de fonction d'ordre superieur plutot que d'héritage), cependant l'interopérabilité entre le modèle BERT/nnlm et les modèles `thinc` était une source de difficulté trop importante par rapport à la simplicité de notation proposée par `thinc`.
+Initialement, il était prévu d'utiliser la librairie [`thinc`](https://thinc.ai) qui base la structure de ses modèles sur une approche fonctionnelle (expoitant le concept de fonction d'ordre superieur plutot que d'héritage), cependant l'interopérabilité entre le modèle BERT/nnlm et les modèles `thinc` était une source de difficulté trop importante par rapport à la simplicité de notation proposée par `thinc`.
 
-Nous pouvons enfin formuler la remarque suivante : afin de combatre d'autant plus le phénomène de sur apprentissage, on ajoute de la régularisation L1 sur les poids internes et de la régularisation L2 sur les sorties de nos couches cachées.
+Nous pouvons enfin formuler la remarque suivante : afin de combattre d'autant plus le phénomène de sur-apprentissage, on ajoute de la régularisation L1 sur les poids internes et de la régularisation L2 sur les sorties de nos couches cachées.
 
 ## 3 - Résultats
 
 Pour entrainer nos modèles, nous avons séparé le jeu initial fourni dans le fichier `train.txt` en trois sous-ensembles : train, validation (à la volée pendant l'entrainement) et test.  
 
-Il est essentiel de remarquer que l'on a effectué les entrainements de nos modèles à l'aide d'une machine exploitant une accélération graphique. Chaque époque demandant environ une minute d'execution. Sur une machine personnelle, cela varie et est de l'ordre de la dizaine de minutes.  
+Il est essentiel de remarquer que l'on a effectué les entrainements de nos modèles à l'aide d'une machine exploitant une accélération graphique (GPU de [Google Colab](https://colab.research.google.com)). Chaque époque demandant environ une minute d'execution. Sur une machine personnelle, cela varie et est de l'ordre de la dizaine de minutes.  
 
 ### Choix de la méthode
 
-Nous avons donc pu comparer les résultats entre l'embedding nnlm et BERT (respectivement dans les notebooks [`nnlm.ipynb`](https://github.com/al-one-zero/extraction/blob/main/notebooks/nnlm.ipynb) et [`bert.ipynb`](https://github.com/al-one-zero/extraction/blob/main/notebooks/bert.ipynb), plus de détails dans le fichier [`README.md`]()). Nous décidons de choisir la seconde approche car nous obtenons de meilleures predictions avec le second (resp. ~75% contre ~82%).
+Nous avons donc pu comparer les résultats entre l'embedding nnlm et BERT (respectivement dans les notebooks [`nnlm.ipynb`](https://github.com/al-one-zero/extraction/blob/main/notebooks/nnlm.ipynb) et [`bert.ipynb`](https://github.com/al-one-zero/extraction/blob/main/notebooks/bert.ipynb), plus de détails dans le fichier [`README.md`]()). Nous décidons de choisir la seconde approche car nous obtenons de meilleures predictions avec le second (resp. ~75% contre ~84%).
 
 ### Performance
 
@@ -102,9 +102,10 @@ De même sur le jeu de test, sur lequel nous obtennons des résultats comparable
 En figure 3, on peut voir un graphique des métriques d'un entrainement au cours des époques.  
 
 ![](https://i.imgur.com/YFaBWVh.png)
+
 _Fig. 3 :_ Accuracy et loss pour les ensembles de validation et d'entrainement.
 
-Pour ce qui est de l'ensemble des données de vérification, nous obtenons la répartition en sentiments suivante : 
+Pour ce qui est de l'ensemble des données de vérification (test.txt), nous obtenons la répartition en sentiments suivante : 
 ```
 neu    472
 irr    299
@@ -116,4 +117,4 @@ Le fichier [`test_output.txt`](https://github.com/al-one-zero/extraction/blob/ma
 ## 4 - Conclusion
 
 Dans cette étude, nous avons pu mettre en place une méthodologie pour analyser le sentiment contenu dans des tweets.
-Une amélioration possible est d'utiliser l'information extraite par les hashtags et les mentions, que nous n'avons finalement pas utilisée. Nous pourrions aussi mettre en place plusieurs méthodes de l'ordre du _fine-tuning_ comme une stratégie de permutation des ensembles _train_ et _val_ comme un $k$-fold pour utiliser notre ensemble d'entrainement de manière optimale, ou bien l'utilisation d'un _learning-rate scheduler_.
+Une amélioration possible est d'utiliser l'information extraite par les hashtags et les mentions, que nous n'avons finalement pas utilisée. Nous pourrions aussi mettre en place plusieurs méthodes de l'ordre du _fine-tuning_ comme une stratégie de permutation des ensembles _train_ et _val_ comme un k-fold pour utiliser notre ensemble d'entrainement de manière optimale, ou bien l'utilisation d'un _learning-rate scheduler_.
