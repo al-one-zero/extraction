@@ -10,7 +10,7 @@ import tensorflow_text as text
 from official.nlp import optimization  # to create AdamW optmizer
 
 
-from preprocessing import preprocess_dataset as clean_data
+from .preprocessing import preprocess_dataset as clean_data
 
 AUTOTUNE = tf.data.AUTOTUNE
 batch_size = 32
