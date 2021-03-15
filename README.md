@@ -2,6 +2,14 @@
 
 ## Installation
 
+### Google Colab
+
+Il est possible d'utiliser les notebooks directement depuis google colab :
+
+`bert.ipynb` : [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/al-one-zero/extraction/blob/main/notebooks/bert.ipynb)  
+`nnlm.ipynb` : [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/al-one-zero/extraction/blob/main/notebooks/nnlm.ipynb)  
+
+### Utilisation en local
 1. Cloner le repo
 `git clone <url>`
 2. Créer un environnement virtuel
