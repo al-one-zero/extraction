@@ -67,11 +67,39 @@ En pratique, l'utilisation des deux types de modèles sont équivalents autant d
 Pour produire une représentation vectorielle de nos tweets, il nous faut télécharger le modèle préentrainé depuis internet et le charger à l'aide respectivement des modules `tensorflow_hub` et `tensorflow`.  
 La marche à suivre est donnée sur la page de chacun des modèles sur [tfhub.dev](https://tfhub.dev). Une légère subtilité est que BERT n'attend pas une chaîne de caractères en entrée, le tweet doit être tokenisé (découpage de la chaîne de catractères initiale en liste de mots). Le préprocesseur produit pour chaque tweet le triplet de tenseurs entiers suivants : un tenseur des indices des mots utilisés, un tenseur représentant le masque que l'on a sur le tenseur précédent (afin que tous les tweets aient la même longueur, on remplit les tweets les plus courts pour qu'ils aient la même longueur que le plus long), puis un tenseur des débuts des tokens dans le tweet. Le modèle `nnlm` luiu attent directement des chaînes de caractère, donc il n'y a pas de préprocessing à faire en amont.  
 
-### c) Predicteur
+### c) Entreprise et langue
 
-Nous choisissons d'utiliser un réseau de neurones profonds avec entre 4 couches cachées de 50 neuronnes par couche. Nous utilisons `tensorflow.keras` pour implémenter cette méthode d'apprentissage.
+Nous incluons l'information sur le nom de l'entreprise que concerne le tweet. Au même titre que pour l'information de langue, il nous faut les transformer en donnée numérique. On choisit simplement de transformer les deux variables en variables catégorielles, on remplace les chaines de caractère par les indices desdites variables, ces indices nous les transformons par la suite en vecteurs one-hot.  
+
+### d) Predicteur
+
+Nous choisissons d'utiliser un réseau de neurones profonds avec quatre couches cachées :
+  - une couche cachée pour chacune des colonnes "Language" et "Entreprise" de 4 neuronnes,
+  - deux couche cachées communes de 128 et 64 neuronnes placées après la couche de concaténation des trois entrées, suivies chacune d'une couche _dropout_ - elle est responsable de l'introduction d'un bruit, qui permet de réduire l'impact du surapprentissage.  
+
+Nous utilisons `tensorflow.keras` pour implémenter cette méthode d'apprentissage. Une vision schématique de ce réseau de neuronnes est en Figure 2.
+![Schematisation du modèle](https://i.imgur.com/ADB8Dfs.png)
+_Fig. 2:_ Schématisation du modèle
+
+
+Nous pouvons enfin formuler la remarque suivante : afin de combatre d'autant plus efficaceement le phénomène de sur apprentissage, on ajoute de la régularisation L1 sur les poids internes et de la régularisation L2 sur les sorties de nos couches cachées.
 
 ## 3 - Résultats
+
+Pour entrainer nos modèles, nous avons séparé le jeu initial fourni dans le fichier `train.txt` en trois sous-ensembles : train, validation (à la volée pendant l'entrainement) et test.  
+
+Il est essentiel de remarquer que l'on a effectué les entrainements de nos modèles à l'aide d'une machine exploitant une accélération graphique. Chaque époque demandant environ une minute d'execution. Sur une machine personnelle, cela varie et est de l'ordre de la dizaine de minutes.  
+
+En moyenne, le modèle converge assez rapidement, il lui faut entre 2 et 3 époques pour atteindre les 85% d'acquité sur le jeu de données de validation. On atteint dans les meilleurs cas plus de 90% (régulièrement 93%) de bonnes réponses.
+De même sur le jeu de test, sur lequel nous obtennons des résultats comparables.  
+
+Pour ce qui est de l'ensemble des données de vérification, nous obtenons la répartition en sentiments suivante : 
+```
+neu    490
+irr    303
+neg    133
+pos     74
+```
 
 ## 4 - Conclusion
 
