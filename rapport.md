@@ -37,22 +37,22 @@ _Fig. 1 :_ Extrait du corpus d'entrainement des tweets
 
 Nous importons ce fichier dans un environnement `python` à l'aide de la bibliothèque [`pandas`](http://pandas.pydata.org).
 
-### Extraction des _mentions_ et des _hashtags_ [[source]](https://github.com/al-one-zero/extraction/blob/2b1308c63e731643da9f3b4c6b174716c13e6873/extraction/preprocessing.py#L54)
+### Extraction des _mentions_ et des _hashtags_ [[source]](https://github.com/al-one-zero/extraction/blob/main/extraction/preprocessing.py#L54)
 
 Un premier traitement que nous réalisons est celui d'extraire les hashtags et les mentions contenues dans chaque tweet. Nous remplacons les mots de ces deux types de lien propre à twitter par leur contenu textuel : "#microsoft" devient "microsoft" et "@apple" devient "apple" par exemple. Nous plaçons ensuite toutes les mentions dans une liste que l'on ajoute à la ligne du tweet concerné, de même pour les mentions.
 
-### Remplacement des émojis [[source]](https://github.com/al-one-zero/extraction/blob/2b1308c63e731643da9f3b4c6b174716c13e6873/extraction/preprocessing.py#L31)
+### Remplacement des émojis [[source]](https://github.com/al-one-zero/extraction/blob/main/extraction/preprocessing.py#L31)
 
 De plus, pour rendre compte de l'information contenue dans les émojis, on décide de les remplacer par leur nom unicode (le nom sous lequel ils sont décrits dans la norme les introduisant).  
 Ainsi, l'émoji "🥓" ayant pour texte unicode "\:bacon:" devient le mot "bacon", ou bien "🤙" ayant pour texte  "\:call_me_hand:" devient "call me hand".
 
-### Liens hypertexte [[source]](https://github.com/al-one-zero/extraction/blob/2b1308c63e731643da9f3b4c6b174716c13e6873/extraction/preprocessing.py#L20)
+### Liens hypertexte [[source]](https://github.com/al-one-zero/extraction/blob/main/extraction/preprocessing.py#L20)
 
 Les liens hypertexte (c'est-à-dire les chaînes de caractères préfixées par "http(s)://bit.ly" - car twitter raccourcit automatiquement les liens avec le raccourcisseur _bit.ly_) sont remplacés par la chaîne "\_LINK_".
 
 ## 2 - Méthodologie de prédiction du sentiment
 
-### a) Détection de la langue du tweet [[source]](https://github.com/al-one-zero/extraction/blob/2b1308c63e731643da9f3b4c6b174716c13e6873/extraction/preprocessing.py#L87)
+### a) Détection de la langue du tweet [[source]](https://github.com/al-one-zero/extraction/blob/main/extraction/preprocessing.py#L87)
 
 On constate qu'une grande majorité des tweets de la classe "irr" sont formulés dans une langue autre que l'anglais. Forts de ce constat, on se propose d'ajouter une information sur la langue de chaque tweet.  
 Pour automatiser le processus, on utilise un modèle préentrainé de la librairie [`fasttext`](https://fasttext.cc/docs/en/language-identification.html). Ce module permet d'identifier 176 langues et est entrainé sur les corpus de texte de Wikipédia, de SETimes et du corpus de traduction collaboratif Tatoeba.  
@@ -81,8 +81,9 @@ Nous utilisons `tensorflow.keras` pour implémenter cette méthode d'apprentissa
 ![Schematisation du modèle](https://i.imgur.com/ADB8Dfs.png)
 _Fig. 2:_ Schématisation du modèle
 
+Inialement, il était prévu d'utiliser la librairie [`thinc`](https://thinc.ai) qui base la structure de ses modèles sur une approche fonctionnelle (expoitant le concept de fonction d'ordre superieur plutot que d'héritage), cependant l'interopérabilité entre le modèle BERT/nnlm et les modèles `thinc` était une source de difficulté trop importante par rapport à la simplicité de notation proposée par `thinc`.
 
-Nous pouvons enfin formuler la remarque suivante : afin de combatre d'autant plus efficaceement le phénomène de sur apprentissage, on ajoute de la régularisation L1 sur les poids internes et de la régularisation L2 sur les sorties de nos couches cachées.
+Nous pouvons enfin formuler la remarque suivante : afin de combatre d'autant plus le phénomène de sur apprentissage, on ajoute de la régularisation L1 sur les poids internes et de la régularisation L2 sur les sorties de nos couches cachées.
 
 ## 3 - Résultats
 
@@ -90,16 +91,29 @@ Pour entrainer nos modèles, nous avons séparé le jeu initial fourni dans le f
 
 Il est essentiel de remarquer que l'on a effectué les entrainements de nos modèles à l'aide d'une machine exploitant une accélération graphique. Chaque époque demandant environ une minute d'execution. Sur une machine personnelle, cela varie et est de l'ordre de la dizaine de minutes.  
 
-En moyenne, le modèle converge assez rapidement, il lui faut entre 2 et 3 époques pour atteindre les 85% d'acquité sur le jeu de données de validation. On atteint dans les meilleurs cas plus de 90% (régulièrement 93%) de bonnes réponses.
+### Choix de la méthode
+
+Nous avons donc pu comparer les résultats entre l'embedding nnlm et BERT (respectivement dans les notebooks [`nnlm.ipynb`](https://github.com/al-one-zero/extraction/blob/main/notebooks/nnlm.ipynb) et [`bert.ipynb`](https://github.com/al-one-zero/extraction/blob/main/notebooks/bert.ipynb), plus de détails dans le fichier [`README.md`]()). Nous décidons de choisir la seconde approche car nous obtenons de meilleures predictions avec le second (resp. ~75% contre ~82%).
+
+### Performance
+
+En moyenne, le modèle converge assez rapidement, il lui faut entre 5 et 7 époques pour atteindre les 85% d'acquité sur le jeu de données de validation. On atteint dans les meilleurs cas plus de 90% de bonnes réponses sur ce même jeu de données de validation.
 De même sur le jeu de test, sur lequel nous obtennons des résultats comparables.  
+En figure 3, on peut voir un graphique des métriques d'un entrainement au cours des époques.  
+
+![](https://i.imgur.com/YFaBWVh.png)
+_Fig. 3 :_ Accuracy et loss pour les ensembles de validation et d'entrainement.
 
 Pour ce qui est de l'ensemble des données de vérification, nous obtenons la répartition en sentiments suivante : 
 ```
-neu    490
-irr    303
-neg    133
-pos     74
+neu    472
+irr    299
+neg    119
+pos    110
 ```
+Le fichier [`test_output.txt`](https://github.com/al-one-zero/extraction/blob/main/data/test_output.txt) est le fichier qui est produit par notre méthodologie.
 
 ## 4 - Conclusion
 
+Dans cette étude, nous avons pu mettre en place une méthodologie pour analyser le sentiment contenu dans des tweets.
+Une amélioration possible est d'utiliser l'information extraite par les hashtags et les mentions, que nous n'avons finalement pas utilisée. Nous pourrions aussi mettre en place plusieurs méthodes de l'ordre du _fine-tuning_ comme une stratégie de permutation des ensembles _train_ et _val_ comme un $k$-fold pour utiliser notre ensemble d'entrainement de manière optimale, ou bien l'utilisation d'un _learning-rate scheduler_.
